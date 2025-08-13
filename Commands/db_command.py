@@ -9,7 +9,7 @@ OBJECT_TYPES = ["Players", "Weapons", "Accessories", "Outfits", "Enemies"]
 
 class DbCommand:
     name = "db"
-    description = "Database management shell (list/ls, delete/rm, goto/cd, show)."
+    description = "Database management shell (list/ls, delete/rm, goto/cd, show, commit/save, revert/reload)."
 
     def __init__(self, db: DatabaseManager):
         self.db = db
@@ -21,7 +21,7 @@ class DbCommand:
             [
                 {
                     "name": "initial_action",
-                    "question": "DB shell start (or leave empty to enter interactive mode)\n Commands: goto/cd, list/ls, delete/rm, show, rename",
+                    "question": "DB shell start (or leave empty to enter interactive mode)\n Commands: goto/cd, list/ls, delete/rm, show, save, reload",
                     "type": str,
                     "default": ""
                 }

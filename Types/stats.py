@@ -1,9 +1,22 @@
 from math import floor
-from typing import Optional, Union, List, Tuple
+from typing import Optional, Union, List, Tuple, Any, Iterable
+from numbers import Number
 
 
 def to_modifier(stat: int) -> int:
     return floor((stat - 10) / 2)
+
+
+def _is_tuple3(x: Any) -> bool:
+    return isinstance(x, tuple) and len(x) == 3 and all(isinstance(t, Number) for t in x)
+
+def _to_tuple3(x: Any) -> tuple[Number, Number, Number]:
+    # Broadcast scalars; pass through valid 3-tuples
+    if _is_tuple3(x):
+        return x  # type: ignore[return-value]
+    if isinstance(x, Number):
+        return (x, x, x)
+    raise TypeError("Cannot convert to 3-tuple")
 
 class BaseStats:
     def __init__(
@@ -52,28 +65,88 @@ class BaseStats:
     def apply_modifier(self, **kwargs):
         """Apply stat changes (additive) to existing values."""
         for k, v in kwargs.items():
-            if hasattr(self, k):
-                curr = getattr(self, k)
+            if not hasattr(self, k):
+                continue
+
+            curr = getattr(self, k)
+
+            # Ignore no-op inputs
+            if v is None:
+                continue
+
+            # Tuple logic: if either side is a 3-tuple, do element-wise with broadcast
+            if _is_tuple3(curr) or _is_tuple3(v):
                 if curr is None:
-                    setattr(self, k, v)
-                elif isinstance(curr, (int, float)) and isinstance(v, (int, float)):
-                    setattr(self, k, curr + v)
-                elif isinstance(curr, list) and isinstance(v, list):
-                    setattr(self, k, curr + v)
+                    setattr(self, k, _to_tuple3(v))
                 else:
-                    setattr(self, k, v)  # overwrite if incompatible type
+                    a = _to_tuple3(curr if curr is not None else 0)
+                    b = _to_tuple3(v)
+                    setattr(self, k, (a[0]+b[0], a[1]+b[1], a[2]+b[2]))
+                continue
+
+            # Plain numbers
+            if isinstance(curr, Number) and isinstance(v, Number):
+                setattr(self, k, curr + v)
+                continue
+
+            # Lists: concatenate
+            if isinstance(curr, list) and isinstance(v, list):
+                setattr(self, k, curr + v)
+                continue
+
+            # If current is None, adopt value
+            if curr is None:
+                setattr(self, k, v)
+                continue
+
+            # Fallback: overwrite if incompatible but not None
+            setattr(self, k, v)
 
     def remove_modifier(self, **kwargs):
-        """Apply stat changes (additive) to existing values."""
+        """Remove previously applied stat changes (subtractive)."""
         for k, v in kwargs.items():
-            if hasattr(self, k):
-                curr = getattr(self, k)
-                if isinstance(curr, (int, float)) and isinstance(v, (int, float)):
-                    setattr(self, k, curr - v)
-                elif isinstance(curr, list) and isinstance(v, list):
-                    setattr(self, k, curr.remove(v))
+            if not hasattr(self, k):
+                continue
+
+            curr = getattr(self, k)
+
+            # Ignore no-op inputs
+            if v is None:
+                continue
+
+            # Tuple logic: if either side is a 3-tuple, do element-wise with broadcast.
+            # After subtraction, collapse (a,a,a) -> a
+            if _is_tuple3(curr) or _is_tuple3(v):
+                if curr is None:
+                    # Nothing to subtract from
+                    continue
+                a = _to_tuple3(curr if curr is not None else 0)
+                b = _to_tuple3(v)
+                res = (a[0]-b[0], a[1]-b[1], a[2]-b[2])
+                if res[0] == res[1] == res[2]:
+                    setattr(self, k, res[0])
                 else:
-                    setattr(self, k, None)  # overwrite if incompatible type
+                    setattr(self, k, res)
+                continue
+
+            # Plain numbers
+            if isinstance(curr, Number) and isinstance(v, Number):
+                setattr(self, k, curr - v)
+                continue
+
+            # Lists: remove one occurrence of each item in v from curr
+            if isinstance(curr, list) and isinstance(v, list):
+                new_list = list(curr)
+                for item in v:
+                    try:
+                        new_list.remove(item)
+                    except ValueError:
+                        pass
+                setattr(self, k, new_list)
+                continue
+
+            # Fallback for incompatible types: clear
+            setattr(self, k, None)
 
     def to_json(self):
         return {k: getattr(self, k) for k in self.__dict__}

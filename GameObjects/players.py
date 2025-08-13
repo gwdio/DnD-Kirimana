@@ -1,4 +1,5 @@
 import math
+from numbers import Number
 from typing import Optional, List, Union, Dict, Any
 from Types.stats import BaseStats, to_modifier
 from Types.game_object import BaseGameObject
@@ -7,19 +8,20 @@ from .weapons import Weapon
 from .accessories import Accessory
 from .outfits import Outfit
 
+
 class Player(BaseGameObject):
     def __init__(
-        self,
-        name: str,
-        level: int,
-        PHY: Optional[int] = None,
-        FIN: Optional[int] = None,
-        COM: Optional[int] = None,
-        MGK: Optional[int] = None,
-        CAP: Optional[int] = None,
-        OPT: Optional[int] = None,
-        RR: Optional[int] = None,
-        Other: Optional[Union[str, List[str]]] = None
+            self,
+            name: str,
+            level: int,
+            PHY: Optional[int] = None,
+            FIN: Optional[int] = None,
+            COM: Optional[int] = None,
+            MGK: Optional[int] = None,
+            CAP: Optional[int] = None,
+            OPT: Optional[int] = None,
+            RR: Optional[int] = None,
+            Other: Optional[Union[str, List[str]]] = None
     ):
         super().__init__(name)
         self.level = level
@@ -54,16 +56,70 @@ class Player(BaseGameObject):
         self.stats.MMAX = round(math.sqrt(cap * lv) * 10)
         self.stats.CHN = round(math.sqrt(opt * lv) * 5)
         self.stats.REG = round(math.sqrt(rr * lv) * 3)
-        self.stats.HP = round((to_modifier(phy) + 10) * 10 + self.stats.MMAX / 2)
+        self.stats.HP = int(round((to_modifier(phy) + 10) * 10 + self.stats.MMAX / 2))
 
         # Initialize current resources
         self.stats.hp_current = int(self.stats.HP)
         self.stats.mana_current = int(self.stats.MMAX)
 
+    def take_damage(self, amount: Number) -> dict:
+        """
+        Apply damage to this character.
+        - Initializes hp_current from a sensible max if missing.
+        - Clamps to [0, +inf).
+        Returns: {"before": float, "after": float, "dead": bool}
+        """
+        amt = max(int(amount), 0.0)
+
+        # Prefer an explicit hp_current on the object for runtime state
+        cur = self.stats.hp_current
+
+        if cur is None:
+            self.stats.hp_current = int(self.stats.HP)
+            cur = self.stats.hp_current
+
+        before = cur
+        after = max(0.0, before - amt)
+        self.stats.hp_current = after
+        return {"before": before, "after": after, "dead": after <= 0.0}
+
+    def heal(self, amount: int) -> dict:
+        """
+        Heal this character by an integer amount.
+        - Uses self.stats.HP as max HP
+        - Uses/sets self.stats.hp_current as current HP
+        - Ignores non-positive amounts
+        - No overcapping: clamps to max HP
+        Returns: {"before": int, "healed": int, "after": int, "max_hp": int}
+        """
+        # coerce to int; ignore bad inputs and non-positive values
+        try:
+            amt = int(amount)
+        except (TypeError, ValueError):
+            amt = 0
+        if amt <= 0:
+            cur0 = int(getattr(self.stats, "hp_current", getattr(self.stats, "HP", 0)) or 0)
+            max_hp0 = int(getattr(self.stats, "HP", 0) or 0)
+            return {"before": cur0, "healed": 0, "after": cur0, "max_hp": max_hp0}
+
+        max_hp = int(getattr(self.stats, "HP", 0) or 0)
+        cur = getattr(self.stats, "hp_current", None)
+        if cur is None:
+            cur = max_hp
+        cur = int(cur)
+
+        after = cur + amt
+        if after > max_hp:
+            after = max_hp
+
+        healed = after - cur
+        self.stats.hp_current = after  # keep current HP as int
+
+        return {"before": cur, "healed": healed, "after": after, "max_hp": max_hp}
+
     def equip_weapon(self, weapon: Weapon):
         self.weapon = weapon
         self.stats.apply_modifier(**weapon.stats.to_json())
-
 
     def equip_outfit(self, outfit: Outfit):
         self.outfit = outfit
@@ -116,7 +172,6 @@ class Player(BaseGameObject):
             if acc:
                 self.stats.apply_modifier(**acc.stats.to_json())
 
-
     def pretty_rep_short(self) -> str:
         acc_names = [acc.name if acc else "None" for acc in self.accessories]
         return (
@@ -137,8 +192,8 @@ class Player(BaseGameObject):
                 f"HP: {self.stats.hp_current}/{self.stats.HP} | PHY: {self.stats.PHY} | FIN: {self.stats.FIN} | COM: {self.stats.COM} | MGK: {self.stats.MGK}\n"
                 f"CAP: {self.stats.CAP} | OPT: {self.stats.OPT} | RR: {self.stats.RR}\n"
                 f"MMAX: {self.stats.MMAX} | CHN: {self.stats.CHN} | REG: {self.stats.REG}\n"
-                f"Weapon:\n  {self.weapon.pretty_rep_short() if self.weapon else 'None'}\n"
-                f"Outfit:\n  {self.outfit.pretty_rep_short() if self.outfit else 'None'}\n"
+                f"Weapon:  {self.weapon.pretty_rep_short() if self.weapon else 'None'}\n"
+                f"Outfit:  {self.outfit.pretty_rep_short() if self.outfit else 'None'}\n"
                 f"Accessories:\n  " + "\n  ".join(acc_strs)
         )
 

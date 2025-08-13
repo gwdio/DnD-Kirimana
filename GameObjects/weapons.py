@@ -82,24 +82,11 @@ class Weapon(BaseGameObject):
     @classmethod
     def from_json(cls, data: dict, db=None) -> "Weapon":
         stats_obj = BaseStats.from_json(data.get("stats", {}))
-        return cls(
+        w = cls(
             name=data["name"],
             weapon_type=data["weapon_type"],
             rarity=data.get("rarity"),
-            PHY_mod=data.get("PHY_mod"),
-            ACC_mod=data.get("ACC_mod"),
-            reach=data.get("reach"),
-            weight=data.get("weight"),
-            conductivity=data.get("conductivity"),
-            control=data.get("control"),
-            damage_type=data.get("damage_type"),
-            ATKM=data.get("ATKM"),
-            PHY=stats_obj.PHY,
-            FIN=stats_obj.FIN,
-            COM=stats_obj.COM,
-            MGK=stats_obj.MGK,
-            CAP=stats_obj.CAP,
-            OPT=stats_obj.OPT,
-            RR=stats_obj.RR,
-            Other=stats_obj.Other
         )
+        # Preserve everything exactly as saved (includes PHY_mod, ACC_mod, reach, weight, conductivity, control, damage_type, ATKM, etc.)
+        w.stats = stats_obj
+        return w

@@ -13,6 +13,9 @@ from Commands.rest_command import RestCommand
 from Commands.refresh_command import RefreshCommand
 from Commands.equip_command import EquipCommand
 from Commands.unequip_command import UnequipCommand
+from Commands.attack_command import AttackCommand
+from Commands.damage_command import DamageCommand
+from Commands.heal_command import HealCommand
 
 
 def build_registry() -> CommandRegistry:
@@ -29,6 +32,9 @@ def build_registry() -> CommandRegistry:
     registry.register(RefreshCommand(database_manager))
     registry.register(EquipCommand(database_manager))
     registry.register(UnequipCommand(database_manager))
+    registry.register(AttackCommand(database_manager))
+    registry.register(DamageCommand(database_manager))
+    registry.register(HealCommand(database_manager))
 
     return registry
 
