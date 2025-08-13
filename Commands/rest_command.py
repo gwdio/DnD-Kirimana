@@ -39,20 +39,20 @@ class RestCommand:
         if not target_name:
             for folder, cls in (("Players", Player), ("Enemies", Enemy)):
                 for name in self.db.list_items(folder):
-                    obj = self.db.load(folder, name, cls=cls)
+                    obj = self.db.get(folder, name)
                     if obj:
                         rest_entity(obj)
-                        self.db.save(obj, folder, obj.name)
+                        self.db.mark_dirty(folder, obj.name)
                         folder_display = SINGULAR_MAP.get(folder, folder.rstrip("s"))
                         affected.append(f"{folder_display}: {obj.name}")
         else:
-            obj = self.db.load("Players", target_name, cls=Player)
+            obj = self.db.get("Players", target_name)
             if not obj:
-                obj = self.db.load("Enemies", target_name, cls=Enemy)
+                obj = self.db.get("Enemies", target_name)
             if obj:
                 rest_entity(obj)
                 folder = "Players" if isinstance(obj, Player) else "Enemies"
-                self.db.save(obj, folder, obj.name)
+                self.db.mark_dirty(folder, obj.name)
                 folder_display = SINGULAR_MAP.get(folder, folder.rstrip("s"))
                 affected.append(f"{folder_display}: {obj.name}")
             else:

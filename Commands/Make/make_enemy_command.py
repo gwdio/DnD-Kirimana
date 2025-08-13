@@ -185,5 +185,5 @@ class MakeEnemyCommand:
             RR=stat_inputs.get("RR")
         )
 
-        self.db.save(enemy, "Enemies", enemy.name)
+        self.db.add_or_replace("Enemies", enemy.name, enemy)
         return {"ok": True, "message": f"✔ Enemy '{enemy.name}' created and saved to database."}

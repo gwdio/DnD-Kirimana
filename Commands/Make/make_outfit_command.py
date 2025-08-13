@@ -70,7 +70,7 @@ class MakeOutfitCommand:
         )
 
         # Save to DB
-        self.db.save(outfit, "Outfits", outfit.name)
+        self.db.add_or_replace("Outfits", outfit.name, outfit)
 
         return {
             "ok": True,

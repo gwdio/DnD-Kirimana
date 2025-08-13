@@ -58,6 +58,10 @@ class DbCommand:
             self._goto_type(args)
         elif cmd == "show":
             self._show_item(args)
+        elif cmd in ("save", "commit"):
+            self._commit(args)
+        elif cmd in ("reload", "revert"):
+            self._reload(args)
         else:
             print(f"Unknown DB action '{cmd}'. Valid: list/ls, delete/rm, goto/cd, show")
 
@@ -131,6 +135,41 @@ class DbCommand:
             print(data)
         else:
             print(json.dumps(data, indent=2))
+
+    def _commit(self, args):
+        self.db.commit()
+
+    def _reload(self, args):
+        if self.current_type is None:
+            # Root context: require a folder and reload everything in it
+            if not args:
+                print("⚠ Must provide a folder name in root context.")
+                return
+            resolved = self._resolve_type(args[0])
+            if not resolved:
+                print(f"⚠ Unknown folder '{args[0]}'.")
+                return
+            files = self.db.list_items(resolved)
+            for key in files:
+                self.db.reload(resolved, key)
+            print(f"Reloaded {', '.join(files) if files else '(none)'}")
+            return
+
+        # Folder context: reload one item (accept typed name with any case)
+        name = " ".join(args) if args else Prompt("Enter name to reload", str).ask().strip()
+        if not name:
+            print("⚠ No name provided.")
+            return
+
+        # Resolve to on-disk key case-insensitively for robustness
+        keys = self.db.list_items(self.current_type)
+        key = next((k for k in keys if k.lower() == name.lower()), name)
+
+        obj = self.db.reload(self.current_type, key)
+        if obj is None:
+            print(f"⚠ No such item '{name}'.")
+            return
+        print(f"Reloaded {key}.")
 
     def _resolve_type(self, inp: str):
         inp_low = inp.lower()

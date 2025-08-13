@@ -74,7 +74,7 @@ class Outfit(BaseGameObject):
         }
 
     @classmethod
-    def from_json(cls, data: dict) -> "Outfit":
+    def from_json(cls, data: dict, db=None) -> "Outfit":
         stats_obj = BaseStats.from_json(data.get("stats", {}))
         return cls(
             name=data["name"],

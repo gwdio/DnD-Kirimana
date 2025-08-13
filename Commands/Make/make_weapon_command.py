@@ -105,7 +105,7 @@ class MakeWeaponCommand:
         )
 
         # Save to DB
-        self.db.save(weapon, "Weapons", weapon.name)
+        self.db.add_or_replace("Weapons", weapon.name, weapon)
 
         return {
             "ok": True,

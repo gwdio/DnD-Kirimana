@@ -55,7 +55,7 @@ class MakePlayerCommand:
         )
 
         # Save to DB
-        self.db.save(player, "Players", player.name)
+        self.db.add_or_replace("Players", player.name, player)
 
         return {
             "ok": True,

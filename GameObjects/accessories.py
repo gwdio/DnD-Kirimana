@@ -73,7 +73,7 @@ class Accessory(BaseGameObject):
         }
 
     @classmethod
-    def from_json(cls, data: dict) -> "Accessory":
+    def from_json(cls, data: dict, db=None) -> "Accessory":
         stats_obj = BaseStats.from_json(data.get("stats", {}))
         return cls(
             name=data["name"],

@@ -54,7 +54,7 @@ class Player(BaseGameObject):
         self.stats.MMAX = round(math.sqrt(cap * lv) * 10)
         self.stats.CHN = round(math.sqrt(opt * lv) * 5)
         self.stats.REG = round(math.sqrt(rr * lv) * 3)
-        self.stats.HP = (to_modifier(phy) + 10) * 10 + self.stats.MMAX / 2
+        self.stats.HP = round((to_modifier(phy) + 10) * 10 + self.stats.MMAX / 2)
 
         # Initialize current resources
         self.stats.hp_current = int(self.stats.HP)
@@ -63,6 +63,7 @@ class Player(BaseGameObject):
     def equip_weapon(self, weapon: Weapon):
         self.weapon = weapon
         self.stats.apply_modifier(**weapon.stats.to_json())
+
 
     def equip_outfit(self, outfit: Outfit):
         self.outfit = outfit
@@ -178,14 +179,14 @@ class Player(BaseGameObject):
             # Weapon
             weapon_name = data.get("weapon")
             if weapon_name:
-                weapon_obj = db.load_object("Weapons", weapon_name)
+                weapon_obj = db.get("Weapons", weapon_name)
                 if weapon_obj:
                     player.weapon = weapon_obj
 
             # Outfit
             outfit_name = data.get("outfit")
             if outfit_name:
-                outfit_obj = db.load_object("Outfits", outfit_name)
+                outfit_obj = db.get("Outfits", outfit_name)
                 if outfit_obj:
                     player.outfit = outfit_obj
 
@@ -193,7 +194,7 @@ class Player(BaseGameObject):
             accessories_list = data.get("accessories", [])
             for i, acc_name in enumerate(accessories_list):
                 if acc_name:
-                    acc_obj = db.load_object("Accessories", acc_name)
+                    acc_obj = db.get("Accessories", acc_name)
                     if acc_obj:
                         player.accessories[i] = acc_obj
 

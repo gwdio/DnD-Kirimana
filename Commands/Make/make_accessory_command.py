@@ -70,7 +70,7 @@ class MakeAccessoryCommand:
         )
 
         # Save to DB
-        self.db.save(accessory, "Accessories", accessory.name)
+        self.db.add_or_replace("Accessories", accessory.name, accessory)
 
         return {
             "ok": True,

@@ -117,20 +117,20 @@ class Enemy(Player):
         if db:
             weapon_name = data.get("weapon")
             if weapon_name:
-                weapon_obj = db.load_object("Weapons", weapon_name)
+                weapon_obj = db.get("Weapons", weapon_name)
                 if weapon_obj:
                     enemy.weapon = weapon_obj
 
             outfit_name = data.get("outfit")
             if outfit_name:
-                outfit_obj = db.load_object("Outfits", outfit_name)
+                outfit_obj = db.get("Outfits", outfit_name)
                 if outfit_obj:
                     enemy.outfit = outfit_obj
 
             accessories_list = data.get("accessories", [])
             for i, acc_name in enumerate(accessories_list):
                 if acc_name:
-                    acc_obj = db.load_object("Accessories", acc_name)
+                    acc_obj = db.get("Accessories", acc_name)
                     if acc_obj:
                         enemy.accessories[i] = acc_obj
 
