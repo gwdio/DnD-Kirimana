@@ -1,3 +1,4 @@
+from GameObjects.enemies import Enemy
 from Types.prompts import Prompt, PromptGroup
 from Types.results import Result
 from Services.database import DatabaseManager
@@ -37,6 +38,6 @@ class UnequipCommand:
         else:
             return {"ok": False, "error": f"Unknown item type '{item_type}'."}
 
-        obj_type = "Players" if isinstance(target, Player) else "Enemies"
+        obj_type = "Players" if not (target, Enemy) else "Enemies"
         self.db.mark_dirty(obj_type, target.name)
         return {"ok": True, "message": f"Unequipped {item_type} from {target.name}."}
