@@ -1,3 +1,7 @@
 .venv
 .idea
-/Data/
+/Data/Accessories
+/Data/Enemies
+/Data/Outfits
+/Data/Players
+/Data/Weapons
