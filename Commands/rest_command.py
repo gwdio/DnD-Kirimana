@@ -51,7 +51,7 @@ class RestCommand:
                 obj = self.db.get("Enemies", target_name)
             if obj:
                 rest_entity(obj)
-                folder = "Players" if isinstance(obj, Player) else "Enemies"
+                folder = "Players" if not isinstance(obj, Enemy) else "Enemies"
                 self.db.mark_dirty(folder, obj.name)
                 folder_display = SINGULAR_MAP.get(folder, folder.rstrip("s"))
                 affected.append(f"{folder_display}: {obj.name}")

@@ -128,8 +128,8 @@ class AttackCommand:
         if not atk or not dfn:
             return {"ok": False, "error": "Attacker or target not found."}
 
-        atk_type = "Players" if isinstance(atk, Player) else "Enemies"
-        dfn_type = "Players" if isinstance(dfn, Player) else "Enemies"
+        atk_type = "Players" if not isinstance(atk, Enemy) else "Enemies"
+        dfn_type = "Players" if not isinstance(dfn, Enemy) else "Enemies"
         atk_key = self._key_match(atk_type, attacker_name)
         dfn_key = self._key_match(dfn_type, target_name)
 
