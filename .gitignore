@@ -1,7 +1,12 @@
 .venv
 .idea
 /Data/Accessories/*
+!/Data/Accessories/.gitkeep
 /Data/Enemies/*
+!/Data/Enemies/.gitkeep
 /Data/Outfits/*
+!/Data/Outfits/.gitkeep
 /Data/Players/*
+!/Data/Players/.gitkeep
 /Data/Weapons/*
+!/Data/Weapons/.gitkeep
